@@ -1,0 +1,107 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Author" CONTENT="John Sugas">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (WinNT; U) [Netscape]">
+   <TITLE>PausingTheBuild</TITLE>
+</HEAD>
+<BODY>
+
+<CENTER><FONT SIZE=+2>Pausing The Build</FONT></CENTER>
+
+<CENTER>
+<HR WIDTH="100%"></CENTER>
+By pausing the build before assembly, we can modify the ASM code before
+it is compiled into an OBJ file. Of course the original inline code in
+the VB module can be changed also, but if the code is finished and we just
+want to try a few changes, pausing the build can be quick without being
+permanent. To start open the Pausing.VBP project. This is just a simple
+little piece of code that returns a number. When run in the VBIDE it will
+always return 0.
+
+<P>The Inline code in the function "Testing" is as follows"
+<BR>&nbsp;
+<UL>Public Function Testing() As Long
+
+<P>'#ASM_START
+<BR>'
+<BR>'&nbsp; mov eax, 12345678&nbsp;&nbsp;&nbsp; ;Put a number in EAX
+<BR>'
+<BR>'&nbsp; ret&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+; Return with result in EAX
+<BR>'#ASM_END
+
+<P>End Function</UL>
+The #ASM tags are needed so the add-in can find the assembly code. The
+ASM block must be commented becuz
+<BR>VB will give us syntax errors if not. The number to return is put into
+the EAX register and the function is returned.
+
+<P>Now, open the VbInline add-in interface and goto the "Change Settings"
+page.
+
+<P>To begin, make sure the "Pause Before Assembly" option is NOT checked.
+<BR>We will do a compile without it first and check the EXE for proper
+operation.
+
+<P>So, check the "Keep Settings Up" option, then click the "Exit Settings"
+button.
+
+<P>Now do a compile of the project. You should not have received any error
+messages.
+
+<P>If you did, check the "VbInlineAsm.dbg" in the "AsmListings-Logs" folder
+which will be in any project folder that Inline is run.
+<BR>Look at the Assembler Output for description of errors. (This is assuming
+the options are set for debugging...)
+
+<P>Now run the EXE. Clicking the cmd button should give a msgbox with the
+"12345678" return.
+
+<P>If we want to change that to "87654321", we could just change it in
+the Inline code or we can pause the build and modify the ASM file.
+
+<P>Open the Vb Inline interface and check the option "Pause Before Assembly".
+
+<P>Now build the EXE again. A msgbox will pop and notify that the "Breakpoint"
+has been hit.
+
+<P>It will ask if you want to open the ASM file with your editor. You can
+click yes to automatically open the file or just find the
+<BR>file with Explorer and open it with NotePad. For the rest of this tutorial
+I'll assume NotePad is used.
+<BR>The file is "Pausing.asm" in the "AsmListings-Logs" folder. If you
+manually opened it, don't click No yet.
+
+<P>Got it open? Good! This is the assembly code that MASM will compile
+when we resume the build.
+
+<P>Down near the bottom we will find our function. Change the "12345678"
+to "87654321".
+
+<P>Save the file. We just overwrote the current ASM with the open file
+in NotePad.
+
+<P>Go back to VB and select the No button (didn't open with ASM editor)
+or Yes to&nbsp; finish the compile.
+<BR>(The button will depend on how you opened the file).
+
+<P>Run the EXE... If all is well then the msgbox should have the reversed
+number in it.
+
+<P>If another change is desired, built the EXE again in VB. Breakpoint
+pops, goto NotePad, make the changes.
+<BR>(Just leave Notepad or your editor open when making many changes and
+hit the "No" button when asked
+<BR>if you want to open the file. This makes it quick to do changes.)
+
+<P>Save the file overwriting the current one.
+
+<P>Return to VB, click "No", and the compile finishes.
+<BR>&nbsp;
+
+<P>This could have been done in the VB module easier but I have found times
+(with more complex code) that it is a handy
+<BR>option to have. Especially when swapping in large blocks of code.....JS
+</BODY>
+</HTML>

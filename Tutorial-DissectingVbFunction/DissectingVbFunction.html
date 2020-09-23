@@ -1,0 +1,76 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Author" CONTENT="John Sugas">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (WinNT; U) [Netscape]">
+   <TITLE>DissectingVbFunction</TITLE>
+</HEAD>
+<BODY>
+
+<CENTER><FONT SIZE=+2>Dissecting a VB Function</FONT></CENTER>
+
+<CENTER>
+<HR WIDTH="100%"></CENTER>
+Why in the world would we want to do that?&nbsp; Well, some of us are just
+plain curious.... 8)&nbsp; Knowing what VB is doing behind the "Curtain"
+is something that intrigues. And, when combining VB and ASM, tearing apart
+a function to see if it can be optimized is ... the whole purpose in using
+ASM+VB in the first place. Making that Speed Critical section of code faster
+and smaller. We will be dissecting a simple function in a standard module.
+Take a look at a class module sometime and you will be amazed at all the
+code that is added to a 1 line function. But then, you know classes are
+slower... Right?
+
+<P>So to start, Open the "DissectVbFunc.vbp" project and take a look at
+the function in the module:
+<BR>&nbsp;
+<UL>Public Function DissectThis(iArg As Long) As Long
+<BR>&nbsp;&nbsp;&nbsp; DissectThis = iArg / 2
+<BR>End Function
+<BR>&nbsp;</UL>
+Real simple.... Just a divide by 2. There is no #ASM tag in this code so
+the compiler will not generate an ASM code listing without being explicitly
+told to do so.
+<BR>To set that option, open the Inline ineterface, "Change Settings",
+check the option: "Listings For All Modules".
+<BR>Build the EXE.
+<BR>In the "AsmListings-Logs" folder will now be 2 files, 1 for the form
+and 1 for the module.
+<BR>Open the Module Listing : "DissectingVbFunc.lst" with NotePad.
+<BR>Scroll down and find our function, the beginning will be this:
+<BR>&nbsp;
+<UL>?DissectThis@MDissect@@AAGXXZ PROC NEAR&nbsp;&nbsp; ; MDissect::DissectThis,
+COMDAT
+
+<P>; 5&nbsp;&nbsp;&nbsp; : Public Function DissectThis(iArg As Long) As
+Long
+<BR>&nbsp;</UL>
+The actual code is next. The machine code listing is necessary for the
+VbInline add-in to parse out any un-named variables that VB may add.
+<BR>Notice that VB is using floating point ASM commands when we are putting
+in a long and expecting a long back..... And this is with the "Optimize
+for FAST Code" setting on the VB compiler. Also, several calls are (or
+can be) made to external VB runtime dll. Of course, as you know, dividing
+by 2 in ASM is a 1 line operation.... shr eax, 1 . Just shift the bytes
+in the register right 1 place....
+
+<P>Just "For the Fun of It", open the form listing in NotePad. "Form1.lst".
+The cmd button is the only thing on the form so scrolling down thru the
+listing you see all the code that VB puts in the click event. Some of it
+is for the msgbox. Near the top of the sub you will see the local variables
+which appear like this:
+<BR>_unnamed_var1$ = -24
+<BR>Notice that all the vars are named "_unnamed_var1$ ". VB keeps track
+of these internally so when we do an ASM Inline compile the add-in must
+rename the variables and then go into the code body and determine which
+variable goes where.... Another point of "interest" is this bit of code
+"DWORD PTR fs:__except_list". This is part of the Structured Error Handler
+routine that VB adds to much of it's code. When doing a compile with MASM
+it WILL produce an error so if it is found in any function code that is
+tagged #ASM it will be removed. If somebody finds a way for MASM to compile
+that, please let me know. Because of that only Class and Standard modules
+are supported in this add-in and preferably not mixed VB functions with
+ASM functions. Although sometimes mixed works ok. You just have to compile
+the code and see if it errors out....JS
+</BODY>
+</HTML>
